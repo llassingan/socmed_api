@@ -99,3 +99,5 @@ volumes:
   redis_data:
   mongo_data:
   rabbitmq_data:
+  grafana_data:
+  postgres_data:
