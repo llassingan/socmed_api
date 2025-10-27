@@ -12,7 +12,7 @@ const logger = require('./utils/logging');
 const errorHandler = require('./middlewares/errorHandler');
 const validateToken = require('./middlewares/authMiddleware');
 const {register} = require('./utils/metricsPrometheus')
-
+const {reqCounter, reqDuration} = require('./middlewares/prometheusMetrics')
 
 
 const app = express();
@@ -69,6 +69,10 @@ const proxyOptions = {
             message: `Internal Server Error: ${err}` });
     }
 }
+
+app.use(reqCounter);
+app.use(reqDuration);
+
 
 // auth
 app.use('/v1/auth',proxy(IDENTITY_SERVICE_HOST, 

@@ -2,7 +2,6 @@ const client = require('prom-client');
 
 const register = new client.Registry();
 
-// Default metrics
 client.collectDefaultMetrics({
   app: 'api_gateway',
   prefix: 'apigtw_',
@@ -10,7 +9,6 @@ client.collectDefaultMetrics({
   register,
 });
 
-// Custom metric: HTTP request duration histogram
 const httpRequestDuration = new client.Histogram({
   name: 'http_request_duration_seconds',
   help: 'Duration of HTTP requests in seconds',
@@ -19,12 +17,12 @@ const httpRequestDuration = new client.Histogram({
 });
 
 const httpRequestCounter = new client.Counter({
-    name: 'http_requests_total',
-    help: 'Total number of HTTP requests',
-    labelNames: ['method', 'route', 'status'],
-  })
+  name: 'http_requests_total',
+  help: 'Total number of HTTP requests',
+  labelNames: ['method', 'route', 'status_code'],
+});
 
-register.registerMetric(httpRequestDuration)
-register.registerMetric(httpRequestCounter)
+register.registerMetric(httpRequestDuration);
+register.registerMetric(httpRequestCounter);
 
 module.exports = { register, httpRequestDuration, httpRequestCounter };

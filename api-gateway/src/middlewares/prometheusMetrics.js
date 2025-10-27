@@ -1,23 +1,29 @@
-const {httpRequestCounter, httpRequestDuration} = require('../utils/metricsPrometheus') 
+const { httpRequestCounter, httpRequestDuration } = require('../utils/metricsPrometheus');
 
-// HTTP request duration
+const normalizePath = (path) =>
+  path.replace(/\d+/g, ':id').replace(/[a-f0-9]{24}/g, ':objectId');
+
 const reqDuration = (req, res, next) => {
-    const end = httpRequestDuration.startTimer();
-    res.on('finish', () => {
-      end({ method: req.method, route: req.route?.path || req.path, status_code: res.statusCode });
+  const end = httpRequestDuration.startTimer();
+  res.on('finish', () => {
+    end({
+      method: req.method,
+      route: normalizePath(req.route?.path || req.path),
+      status_code: res.statusCode,
     });
-    next();
-  };
+  });
+  next();
+};
 
-// HTTP request counter
 const reqCounter = (req, res, next) => {
+  res.on('finish', () => {
     httpRequestCounter.inc({
-        method: req.method,
-        route: req.path,
-        status: res.statusCode,
-      })
-      next()
-}
+      method: req.method,
+      route: normalizePath(req.route?.path || req.path),
+      status_code: res.statusCode,
+    });
+  });
+  next();
+};
 
-
-module.exports = {reqDuration, reqCounter}
+module.exports = { reqDuration, reqCounter };
