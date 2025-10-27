@@ -1,4 +1,4 @@
-# Social Media API (socmed_api)
+# Social Media Microservices API (socmed_api)
 
 A distributed, containerized microservices-based RESTful API for a social media platform. It provides endpoints for user authentication, post creation, media uploads, and content search. All designed with scalability, observability, and performance in mind.
 
