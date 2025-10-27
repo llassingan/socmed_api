@@ -45,10 +45,11 @@ app.use((req, res, next) => {
 
 
 const sensitiveRateLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, 
+    windowMs: 10 * 60 * 1000, 
     max: 50,
     standardHeaders: true, 
     legacyHeaders: false,
+    skip: (req) => req.path === '/metrics',
     handler: (req, res) => {
         logger.warn(`Too many requests from IP: ${req.ip} to sensitive endpoint`)
         res.status(429).json({

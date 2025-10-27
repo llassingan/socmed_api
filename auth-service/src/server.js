@@ -50,6 +50,7 @@ const rateLimiter = new RateLimiterRedis({
 
 // register rate limiter as middleware
 app.use((req, res, next) => {
+    if (req.path === '/metrics') return next();
     rateLimiter.consume(req.ip) // evaluate rate limit based on IP
     .then(() => {
         next();
@@ -64,10 +65,11 @@ app.use((req, res, next) => {
 
 // ip based rate limiting for sensitive endpoints
 const sensitiveRateLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minute window
+    windowMs: 10 * 60 * 1000, // 15 minute window
     max: 50,
     standardHeaders: true,
     legacyHeaders: false, 
+    skip: (req) => req.path === '/metrics',
     handler: (req, res) => {
         logger.warn(`Too many requests from IP: ${req.ip} to sensitive endpoint`)
         res.status(429).json({
