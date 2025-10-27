@@ -167,6 +167,7 @@ services:
       - DATABASE_URL=postgresql://user:password@postgres:5432/postdb
     volumes:
       - ./logs/post_service:/app/logs
+    command: ["sh", "-c", "npx prisma migrate dev && node src/server.js"]
 
   media_service:
     build:

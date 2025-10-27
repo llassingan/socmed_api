@@ -11,7 +11,7 @@ const proxy = require('express-http-proxy');
 const logger = require('./utils/logging');
 const errorHandler = require('./middlewares/errorHandler');
 const validateToken = require('./middlewares/authMiddleware');
-
+const {register} = require('./utils/metricsPrometheus')
 
 
 
@@ -146,6 +146,11 @@ app.use('/v1/search', validateToken,
         }
 ))
 
+// Expose metrics endpoint for Prometheus
+app.get('/metrics', async (req, res) => {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+  });
 
 app.use(errorHandler);
 
