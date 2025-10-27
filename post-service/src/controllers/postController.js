@@ -16,26 +16,21 @@ const createPost =  async(req, res) =>{
                 message: error.details[0].message});
         }
         const {content, mediaIds} = req.body;
-        const newPost = new Post({
-            user: req.user.userId, 
-            content, 
-            mediaIds: mediaIds || []
-        });
-        await newPost.save();
-
+        const newPost =  await Post.addPost(String(req.user.userId), content, mediaIds)
+        
         await publishMessage('post.created', { 
-            postId: newPost._id.toString(), 
-            userId: newPost.user.toString(),
+            postId: newPost.id.toString(), 
+            userId: newPost.user,
             content: newPost.content,
             createdAt: newPost.createdAt
          });
 
 
-        await invalidateCache(req,newPost._id.toString());
-        logger.info(`Post created successfully: ${newPost._id.toString()}`);
+        await invalidateCache(req,newPost.id.toString());
+        logger.info(`Post created successfully: ${newPost.id.toString()}`);
         res.status(201).json({
             success: true,
-            message: 'Post created successfully',
+            message: `Post ${newPost.id.toString()} created successfully`,
         });
         
     } catch (error) {
@@ -73,12 +68,9 @@ const getAllPosts =  async(req, res) =>{
         }
 
         //  if not in cache, fetch from database
-        const posts = await Post.find()
-                                .sort({createdAt: -1})
-                                .skip(skip)
-                                .limit(limit)
+        const posts = await Post.getAllPosts(skip, limit);
         
-        const totalPosts = await Post.countDocuments();
+        const totalPosts = posts.length
 
         const result = {
             posts,
@@ -122,7 +114,7 @@ const getPost =  async(req, res) =>{
                 data: parsedPosts.posts
             });
         }
-        const post = await Post.findById(postId);
+        const post = await Post.getPost(postId);
         if(!post){
             logger.warn(`Post not found: ${postId}`);
             return res.status(404).json({
@@ -148,11 +140,7 @@ const getPost =  async(req, res) =>{
 const deletePost =  async(req, res) =>{
     try {
         const postId = req.params.id;
-        const post = await Post.findOneAndDelete({
-            _id: postId,
-            user: req.user.userId 
-        });
-
+        const post = await Post.deletePost(postId);
         if(!post){
             logger.warn(`Post not found: ${postId}`);
             return res.status(404).json({
@@ -162,7 +150,7 @@ const deletePost =  async(req, res) =>{
         }
 
         await publishMessage('post.deleted', { 
-            postId: post._id.toString(), 
+            postId: post.id.toString(), 
             userId: req.user.userId,
             mediaIds: post.mediaIds
          });
@@ -194,12 +182,8 @@ const updatePost =  async(req, res) =>{
                 message: error.details[0].message});
         }
         const {content} = req.body
-        const post = await Post.findOneAndUpdate({
-            _id: postId,
-            user: req.user.userId
-        }, {
-            content
-        }, {new: true});
+        const post = await Post.updatePost(postId, content);
+
         if(!post){
             logger.warn(`Post not found: ${postId}`);
             return res.status(404).json({

@@ -2,7 +2,7 @@ require('dotenv').config()
 
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 const helmet = require('helmet');
 const cors = require('cors');
 const Redis = require('ioredis');
@@ -17,18 +17,6 @@ const {connectRabbitMQ} = require('./utils/rabbitmq');
 
 const app = express();
 const PORT = process.env.PORT || 3002;
-
-
-const MONGODB_URI = process.env.MONGODB_URI
-
-mongoose.connect(MONGODB_URI)
-.then(() => {
-    logger.info('Connected to MongoDB');
-}).catch((err) => {
-    logger.error('Error connecting to MongoDB: %o', err);
-    process.exit(1);
-});
-
 
 const redisClient = new Redis(process.env.REDIS);
 
